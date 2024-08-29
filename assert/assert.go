@@ -1,26 +1,20 @@
 package assert
 
 import (
-	"log"
-	"path/filepath"
 	"reflect"
-	"runtime"
 	"testing"
 )
 
 func Assert(t *testing.T, x, y any) {
-	_, f, l, _ := runtime.Caller(1)
-	f = filepath.Base(f)
 	if !reflect.DeepEqual(x, y) {
-		log.Fatalf("(%s:%d)[ASSERT-FAILED] - %v != %v", f, l, x, y)
+		t.Fatalf("[ASSERT-FAILED] - %v != %v", x, y)
 	}
 }
 
 func AssertT[T comparable](t *testing.T, x, y T) {
-	_, f, l, _ := runtime.Caller(1)
-	f = filepath.Base(f)
+	t.Helper()
 	if x != y {
-		log.Fatalf("(%s:%d)[ASSERT-FAILED] - %v != %v", f, l, x, y)
+		t.Fatalf("[ASSERT-FAILED] - %v != %v", x, y)
 	}
 }
 
