@@ -14,14 +14,14 @@ func (e EMap) Nil() bool {
 }
 
 func (e EMap) IfNil(key string) bool {
-	if e[key] == nil {
-		return true
-	}
-	return false
+	return e[key] == nil
 }
 
 func (e EMap) Get(key string) string {
-	return e[key].Error()
+	if v, ok := e[key]; ok {
+		return v.Error()
+	}
+	return ""
 }
 
 func (e EMap) Error() string {

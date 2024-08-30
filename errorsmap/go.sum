@@ -1,0 +1,4 @@
+github.com/josuebrunel/gopkg/assert v0.0.3 h1:XmCKGOy6pLZURUAm7z/puLwAJUbpMwSekN7XZO2Woz0=
+github.com/josuebrunel/gopkg/assert v0.0.3/go.mod h1:qjQaOQuJvSCZMR8REOPm1OocOeF1io7INhBuq86qDVI=
+golang.org/x/exp v0.0.0-20240823005443-9b4947da3948 h1:kx6Ds3MlpiUHKj7syVnbp57++8WpuKPcR5yjLBjvLEA=
+golang.org/x/exp v0.0.0-20240823005443-9b4947da3948/go.mod h1:akd2r19cwCdwSwWeIdzYQGa/EZZyqcOdwWiwj5L5eKQ=
