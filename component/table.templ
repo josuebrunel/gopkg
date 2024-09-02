@@ -1,7 +1,7 @@
 package component
 
-templ Table() {
-    <table class=".overflow-auto">
-        {children...}
-    </table>
+templ Table(attr templ.Attributes) {
+	<table { attr... }>
+		{ children... }
+	</table>
 }
