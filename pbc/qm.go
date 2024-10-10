@@ -48,13 +48,21 @@ func NewQuery(opts ...QueryOption) *Query {
 	return q
 }
 
+// Headers represents
+type Headers = map[string]string
+
 // WithHeaders adds headers to the query
-func WithHeaders(headers map[string]string) QueryOption {
+func WithHeaders(headers Headers) QueryOption {
 	return func(q *Query) {
 		for k, v := range headers {
 			q.Headers[k] = v
 		}
 	}
+}
+
+// WithAuthorization adds Authorization header to request
+func WithAuthorization(token string) QueryOption {
+	return WithHeaders(Headers{"Authorization": token})
 }
 
 // WithParams adds parameters to the query

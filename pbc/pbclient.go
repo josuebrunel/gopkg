@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	EndpointAuthAdmin = "/api/admin/auth-with-password"
+	EndpointHealth    = "/api/health"
+	EndpointAuthAdmin = "/api/admins/auth-with-password"
 	EndpointAuthUser  = "/api/collections/users/auth-with-password"
 	EndpointRecords   = "/api/collections/%s/records"
 	EndpointRecordID  = "/api/collections/%s/records/%s"
@@ -72,6 +73,7 @@ func (c Client) buildUrl(path string, query *Query) string {
 	}
 
 	u.RawQuery = q.Encode()
+	slog.Debug("built url", "url", u.String())
 	return u.String()
 }
 
@@ -100,6 +102,11 @@ func (c *Client) Request(method, url string, opts ...QueryOption) (*http.Respons
 		return resp, ErrInvalidStatusCode
 	}
 	return resp, nil
+}
+
+func (c *Client) Health() (HealthResponse, error) {
+	resp, err := c.Request(http.MethodGet, EndpointHealth)
+	return ResponseTo[HealthResponse](resp), err
 }
 
 func (c *Client) Auth(endpoint, username, password string) (*http.Response, error) {
@@ -138,8 +145,9 @@ func (c *Client) RecordUpdate(name string, id string, opts ...QueryOption) (*htt
 	return c.Request(http.MethodPatch, EndpointRecordID, opts...)
 }
 
-func (c *Client) RecordDelete(name string, id string) (*http.Response, error) {
-	return c.Request(http.MethodDelete, EndpointRecordID, WithParams(name, id))
+func (c *Client) RecordDelete(name string, id string, opts ...QueryOption) (*http.Response, error) {
+	opts = append(opts, WithParams(name, id))
+	return c.Request(http.MethodDelete, EndpointRecordID, opts...)
 }
 
 func ResponseTo[T any](resp *http.Response) T {
