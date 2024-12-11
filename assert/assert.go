@@ -1,17 +1,10 @@
 package assert
 
 import (
-	"reflect"
 	"testing"
 )
 
-func Assert(t *testing.T, x, y any) {
-	if !reflect.DeepEqual(x, y) {
-		t.Fatalf("[ASSERT-FAILED] - %v != %v", x, y)
-	}
-}
-
-func AssertT[T comparable](t *testing.T, x, y T) {
+func Eq[T comparable](t *testing.T, x, y T) {
 	t.Helper()
 	if x != y {
 		t.Fatalf("[ASSERT-FAILED] - %v != %v", x, y)
