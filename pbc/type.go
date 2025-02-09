@@ -59,10 +59,10 @@ type RecordBase struct {
 }
 
 type RequestUserCreate struct {
-	Username        string `json:"username"`
-	Email           string `json:"email"`
-	Password        string `json:"password"`
-	PasswordConfirm string `json:"passwordConfirm"`
+	Username        string `json:"username" form:"username"`
+	Email           string `json:"email" form:"email"`
+	Password        string `json:"password" form:"password"`
+	PasswordConfirm string `json:"passwordConfirm" form:"password"`
 }
 
 type Records[T any] struct {
