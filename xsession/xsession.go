@@ -15,9 +15,10 @@ import (
 const SessionName = "xtoken"
 
 type XUser struct {
-	ID    string `json:"id"`
-	Token string `json:"token"`
-	Email string `json:"email"`
+	ID    string            `json:"id"`
+	Token string            `json:"token"`
+	Email string            `json:"email"`
+	Data  map[string]string `json:"data"`
 }
 
 type SessionConfig struct {
@@ -34,7 +35,7 @@ var (
 
 func init() {
 	SessionManager = scs.New()
-	SessionManager.Lifetime = 23 * time.Hour
+	SessionManager.Lifetime = 1 * time.Hour
 }
 
 func LoadAndSave(sessionManager *scs.SessionManager) echo.MiddlewareFunc {
@@ -165,5 +166,5 @@ func DeleteUser(c context.Context) {
 }
 
 func IsAuthenticated(c context.Context) bool {
-	return !(GetUser(c) == (XUser{}))
+	return GetUser(c).ID != ""
 }
