@@ -21,6 +21,16 @@ type XUser struct {
 	Data  map[string]string `json:"data"`
 }
 
+func NewXUser(id, token, email string, data map[string]string) XUser {
+	if len(data) == 0 {
+		data = make(map[string]string)
+	}
+	return XUser{
+		ID: id, Token: token, Email: email,
+		Data: data,
+	}
+}
+
 type SessionConfig struct {
 	Skipper        middleware.Skipper
 	SessionManager *scs.SessionManager
@@ -127,6 +137,18 @@ func LoginRequired(redirectPath string) echo.MiddlewareFunc {
 			sess := GetUser(c.Request().Context())
 			if strings.EqualFold(sess.Token, "") {
 				return c.Redirect(http.StatusFound, redirectPath)
+			}
+			return next(c)
+		}
+	}
+}
+
+func LoginRequiredFunc(fn echo.HandlerFunc) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			sess := GetUser(c.Request().Context())
+			if strings.EqualFold(sess.Token, "") {
+				return fn(c)
 			}
 			return next(c)
 		}
