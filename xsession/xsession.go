@@ -12,8 +12,10 @@ import (
 	"github.com/labstack/echo/v5/middleware"
 )
 
+// SessionName is the key used to store user session data.
 const SessionName = "xtoken"
 
+// XUser represents the user data stored in the session.
 type XUser struct {
 	ID    string            `json:"id"`
 	Token string            `json:"token"`
@@ -21,6 +23,23 @@ type XUser struct {
 	Data  map[string]string `json:"data"`
 }
 
+// Set adds or updates a key-value pair in the user's custom data.
+func (x XUser) Set(key, value string) {
+	if x.Data == nil {
+		x.Data = make(map[string]string)
+	}
+	x.Data[key] = value
+}
+
+// Get retrieves a value from the user's custom data by key.
+func (x XUser) Get(key string) string {
+	if x.Data == nil {
+		return ""
+	}
+	return x.Data[key]
+}
+
+// NewXUser creates a new XUser instance.
 func NewXUser(id, token, email string, data map[string]string) XUser {
 	if len(data) == 0 {
 		data = make(map[string]string)
@@ -46,6 +65,10 @@ var (
 func init() {
 	SessionManager = scs.New()
 	SessionManager.Lifetime = 1 * time.Hour
+}
+
+func SetLifetime(lifetime time.Duration) {
+	SessionManager.Lifetime = lifetime
 }
 
 func LoadAndSave(sessionManager *scs.SessionManager) echo.MiddlewareFunc {
