@@ -24,7 +24,7 @@ type XUser struct {
 }
 
 // Set adds or updates a key-value pair in the user's custom data.
-func (x XUser) Set(key, value string) {
+func (x *XUser) Set(key, value string) {
 	if x.Data == nil {
 		x.Data = make(map[string]string)
 	}
