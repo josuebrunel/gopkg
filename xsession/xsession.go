@@ -31,6 +31,18 @@ func NewXUser(id, token, email string, data map[string]string) XUser {
 	}
 }
 
+func (x *XUser) SetData(key, value string) {
+	x.Data[key] = value
+}
+
+func (x *XUser) GetData(key string) string {
+	return x.Data[key]
+}
+
+func (x *XUser) DeleteData(key string) {
+	delete(x.Data, key)
+}
+
 type SessionConfig struct {
 	Skipper        middleware.Skipper
 	SessionManager *scs.SessionManager
