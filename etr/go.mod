@@ -1,4 +1,4 @@
-module etr
+module github.com/josuebrunel/gopkg/etr
 
 go 1.24.4
 
