@@ -17,32 +17,35 @@ type (
 
 var xc xcontextkey = "xcontext"
 
-func Render(ctx echo.Context, status int, tpl templ.Component, data any) error {
-	ctx.Response().Writer.WriteHeader(status)
+func Render(c *echo.Context, status int, tpl templ.Component, data any) error {
+	c.Response().WriteHeader(status)
 
 	var csrf string
-	if v := ctx.Get("csrf"); v != nil {
+	if v := c.Get("csrf"); v != nil {
 		csrf = v.(string)
 	}
-	cx := ctx.Request().Context()
-	cx = context.WithValue(cx, xc, map[string]any{
-		"request": ctx.Request(),
-		"url":     ctx.Request().URL.String(),
-		"reverse": ctx.Echo().Router().Routes().Reverse,
+	ctx := c.Request().Context()
+	ctx = context.WithValue(ctx, xc, map[string]any{
+		"request": c.Request(),
+		"url":     c.Request().URL.String(),
+		"reverse": c.Echo().Router().Routes().Reverse,
 		"csrf":    csrf,
 		"data":    data,
 	})
 
-	err := tpl.Render(cx, ctx.Response().Writer)
+	err := tpl.Render(ctx, c.Response())
 	if err != nil {
-		return ctx.String(http.StatusInternalServerError, "failed to render response template")
+		return c.String(http.StatusInternalServerError, "failed to render response template")
 	}
 
 	return nil
 }
 
 func Get[T any](ctx context.Context, key string) T {
-	cx := ctx.Value(xc).(map[string]any)
+	var cx map[string]any
+	if v := ctx.Value(xc); v != nil {
+		cx = v.(map[string]any)
+	}
 	var r T
 	if v, ok := cx[key]; ok {
 		r = v.(T)
@@ -59,7 +62,7 @@ func Reverse(cx context.Context, name string, values ...any) string {
 	return path
 }
 
-func ReverseX(c echo.Context, name string, values ...any) string {
+func ReverseX(c *echo.Context, name string, values ...any) string {
 	path, err := c.Echo().Router().Routes().Reverse(name, values...)
 	if err != nil {
 		xlog.Error("error while reversing route", "name", name, "values", values, "error", err)
