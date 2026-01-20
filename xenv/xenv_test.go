@@ -23,6 +23,7 @@ type AppConfig struct {
 		Enabled bool `env:"ENABLED" default:"true"`
 	}
 	Database Database `env:"DB"`
+	Tags     []string `env:"TAGS"`
 }
 
 func TestBasicConfig(t *testing.T) {
@@ -34,6 +35,7 @@ func TestBasicConfig(t *testing.T) {
 	os.Setenv("DB_USER", "user")
 	os.Setenv("DB_PASSWORD", "dbpass")
 	os.Setenv("DB_SSLMODE", "true")
+	os.Setenv("TAGS", "tag1,tag2")
 
 	cfg := &AppConfig{}
 	err := Load(cfg)
@@ -67,6 +69,10 @@ func TestBasicConfig(t *testing.T) {
 
 	if !cfg.Database.SSLMode {
 		t.Errorf("Expected 'true', got %t", cfg.Database.SSLMode)
+	}
+
+	if len(cfg.Tags) != 2 {
+		t.Errorf("Expected 2 tags, got %d", len(cfg.Tags))
 	}
 
 	defer os.Clearenv()
