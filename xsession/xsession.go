@@ -78,7 +78,7 @@ func LoadAndSaveWithConfig(config SessionConfig) echo.MiddlewareFunc {
 	}
 
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			if config.Skipper(c) {
 				return next(c)
 			}
@@ -98,36 +98,39 @@ func LoadAndSaveWithConfig(config SessionConfig) echo.MiddlewareFunc {
 
 			c.SetRequest(c.Request().WithContext(ctx))
 
-			c.Response().Before(func() {
-				if config.SessionManager.Status(ctx) != scs.Unmodified {
-					responseCookie := &http.Cookie{
-						Name:     config.SessionManager.Cookie.Name,
-						Path:     config.SessionManager.Cookie.Path,
-						Domain:   config.SessionManager.Cookie.Domain,
-						Secure:   config.SessionManager.Cookie.Secure,
-						HttpOnly: config.SessionManager.Cookie.HttpOnly,
-						SameSite: config.SessionManager.Cookie.SameSite,
-					}
-
-					switch config.SessionManager.Status(ctx) {
-					case scs.Modified:
-						token, _, err := config.SessionManager.Commit(ctx)
-						if err != nil {
-							panic(err)
+			resp, err := echo.UnwrapResponse(c.Response())
+			if err != nil {
+				resp.Before(func() {
+					if config.SessionManager.Status(ctx) != scs.Unmodified {
+						responseCookie := &http.Cookie{
+							Name:     config.SessionManager.Cookie.Name,
+							Path:     config.SessionManager.Cookie.Path,
+							Domain:   config.SessionManager.Cookie.Domain,
+							Secure:   config.SessionManager.Cookie.Secure,
+							HttpOnly: config.SessionManager.Cookie.HttpOnly,
+							SameSite: config.SessionManager.Cookie.SameSite,
 						}
 
-						responseCookie.Value = token
+						switch config.SessionManager.Status(ctx) {
+						case scs.Modified:
+							token, _, err := config.SessionManager.Commit(ctx)
+							if err != nil {
+								panic(err)
+							}
 
-					case scs.Destroyed:
-						responseCookie.Expires = time.Unix(1, 0)
-						responseCookie.MaxAge = -1
+							responseCookie.Value = token
+
+						case scs.Destroyed:
+							responseCookie.Expires = time.Unix(1, 0)
+							responseCookie.MaxAge = -1
+						}
+
+						c.SetCookie(responseCookie)
+						addHeaderIfMissing(c.Response(), "Cache-Control", `no-cache="Set-Cookie"`)
+						addHeaderIfMissing(c.Response(), "Vary", "Cookie")
 					}
-
-					c.SetCookie(responseCookie)
-					addHeaderIfMissing(c.Response(), "Cache-Control", `no-cache="Set-Cookie"`)
-					addHeaderIfMissing(c.Response(), "Vary", "Cookie")
-				}
-			})
+				})
+			}
 
 			return next(c)
 		}
@@ -145,7 +148,7 @@ func addHeaderIfMissing(w http.ResponseWriter, key, value string) {
 
 func LoginRequired(redirectPath string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			sess := GetUser(c.Request().Context())
 			if strings.EqualFold(sess.Token, "") {
 				return c.Redirect(http.StatusFound, redirectPath)
@@ -157,7 +160,7 @@ func LoginRequired(redirectPath string) echo.MiddlewareFunc {
 
 func LoginRequiredFunc(fn echo.HandlerFunc) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			sess := GetUser(c.Request().Context())
 			if strings.EqualFold(sess.Token, "") {
 				return fn(c)
