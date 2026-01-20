@@ -37,7 +37,7 @@ type ToastEvent struct {
 	Event Toast `json:"toast"`
 }
 
-func Notify(c echo.Context, kind string, title string, msg string) {
+func Notify(c *echo.Context, kind string, title string, msg string) {
 	t := ToastEvent{
 		Event: Toast{
 			Kind:    kind,
@@ -74,19 +74,19 @@ func Info(msg string) Toast {
 	return Toast{KindInfo, TitleInfo, msg}
 }
 
-func NotifySuccess(c echo.Context, msg string) {
+func NotifySuccess(c *echo.Context, msg string) {
 	Notify(c, KindSuccess, TitleSuccess, msg)
 }
 
-func NotifyError(c echo.Context, msg string) {
+func NotifyError(c *echo.Context, msg string) {
 	Notify(c, KindError, TitleError, msg)
 }
 
-func NotifyWarning(c echo.Context, msg string) {
+func NotifyWarning(c *echo.Context, msg string) {
 	Notify(c, KindWarning, TitleWarning, msg)
 }
 
-func NotifyInfo(c echo.Context, msg string) {
+func NotifyInfo(c *echo.Context, msg string) {
 	Notify(c, KindInfo, TitleInfo, msg)
 }
 
@@ -99,7 +99,7 @@ func marshallFrom[T any](t T) string {
 	return string(d)
 }
 
-func UnmarshallToast(c echo.Context) Toast {
+func UnmarshallToast(c *echo.Context) Toast {
 	var t ToastEvent
 	if value := c.Request().Header.Get(HeaderKey); value != "" {
 		if err := json.Unmarshal([]byte(value), &t); err != nil {
