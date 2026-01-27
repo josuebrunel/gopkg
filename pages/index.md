@@ -81,7 +81,7 @@ func Handler(c echo.Context) error {
 
 A lightweight library for populating struct fields from environment variables.
 
-See [xenv/README.md](xenv/README.md) for full documentation.
+See [xenv/README.md](../xenv/README.md) for full documentation.
 
 ### xlog
 
