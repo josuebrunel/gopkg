@@ -1,3 +1,4 @@
+// Package pbc (PocketBase Client) provides a client for interacting with the PocketBase API.
 package pbc
 
 import (
@@ -25,12 +26,14 @@ func getEndpoint(endpoint string, params ...any) string {
 	return fmt.Sprintf(endpoint, params...)
 }
 
+// Client is the PocketBase client.
 type Client struct {
 	BaseURL string
 	Token   string
 	Client  *clink.Client
 }
 
+// New creates a new PocketBase client.
 func New(baseURL string) Client {
 	c := clink.NewClient()
 	c.Headers["Content-Type"] = "application/json"
@@ -77,6 +80,7 @@ func (c Client) buildUrl(path string, query *Query) string {
 	return u.String()
 }
 
+// Request sends a request to the PocketBase API.
 func (c *Client) Request(method, url string, opts ...QueryOption) (*http.Response, error) {
 	query := NewQuery(opts...)
 	url = c.buildUrl(url, query)
@@ -104,11 +108,13 @@ func (c *Client) Request(method, url string, opts ...QueryOption) (*http.Respons
 	return resp, nil
 }
 
+// Health checks the health of the PocketBase server.
 func (c *Client) Health() (HealthResponse, error) {
 	resp, err := c.Request(http.MethodGet, EndpointHealth)
 	return ResponseTo[HealthResponse](resp), err
 }
 
+// Auth performs authentication.
 func (c *Client) Auth(endpoint, username, password string) (*http.Response, error) {
 	payload := RequestAuth{
 		Identity: username,
@@ -117,39 +123,47 @@ func (c *Client) Auth(endpoint, username, password string) (*http.Response, erro
 	return c.Request(http.MethodPost, endpoint, WithData(payload))
 }
 
+// AdminAuth authenticates as an admin.
 func (c *Client) AdminAuth(username, password string) (*http.Response, error) {
 	return c.Auth(EndpointAuthAdmin, username, password)
 }
 
+// UserAuth authenticates as a user.
 func (c *Client) UserAuth(username, password string) (*http.Response, error) {
 	return c.Auth(EndpointAuthUser, username, password)
 }
 
+// RecordCreate creates a new record in the specified collection.
 func (c *Client) RecordCreate(name string, opts ...QueryOption) (*http.Response, error) {
 	opts = append(opts, WithParams(name))
 	return c.Request(http.MethodPost, EndpointRecords, opts...)
 }
 
+// RecordGet retrieves a record by ID from the specified collection.
 func (c *Client) RecordGet(name string, id string, opts ...QueryOption) (*http.Response, error) {
 	opts = append(opts, WithParams(name, id))
 	return c.Request(http.MethodGet, EndpointRecordID, opts...)
 }
 
+// RecordList lists records from the specified collection.
 func (c *Client) RecordList(name string, opts ...QueryOption) (*http.Response, error) {
 	opts = append(opts, WithParams(name))
 	return c.Request(http.MethodGet, EndpointRecords, opts...)
 }
 
+// RecordUpdate updates a record by ID in the specified collection.
 func (c *Client) RecordUpdate(name string, id string, opts ...QueryOption) (*http.Response, error) {
 	opts = append(opts, WithParams(name, id))
 	return c.Request(http.MethodPatch, EndpointRecordID, opts...)
 }
 
+// RecordDelete deletes a record by ID from the specified collection.
 func (c *Client) RecordDelete(name string, id string, opts ...QueryOption) (*http.Response, error) {
 	opts = append(opts, WithParams(name, id))
 	return c.Request(http.MethodDelete, EndpointRecordID, opts...)
 }
 
+// ResponseTo unmarshals the response body into a given type T.
 func ResponseTo[T any](resp *http.Response) T {
 	var t T
 	if err := clink.ResponseToJson(resp, &t); err != nil {

@@ -1,3 +1,4 @@
+// Package xlog provides a structured logger based on log/slog.
 package xlog
 
 import (
@@ -43,18 +44,22 @@ func init() {
 	logger = slog.New(handler)
 }
 
+// Info logs a message at Info level.
 func Info(msg string, args ...any) {
 	logger.Info(msg, args...)
 }
 
+// Debug logs a message at Debug level.
 func Debug(msg string, args ...any) {
 	logger.Debug(msg, args...)
 }
 
+// Error logs a message at Error level.
 func Error(msg string, args ...any) {
 	logger.Error(msg, args...)
 }
 
+// Warn logs a message at Warn level.
 func Warn(msg string, args ...any) {
 	logger.Warn(msg, args...)
 }

@@ -1,3 +1,4 @@
+// Package xsession provides session management middleware and helpers for Echo, backed by alexedwards/scs.
 package xsession
 
 import (
@@ -12,8 +13,10 @@ import (
 	"github.com/labstack/echo/v5/middleware"
 )
 
+// SessionName is the key used for storing user session data.
 const SessionName = "xtoken"
 
+// XUser represents a user in the session.
 type XUser struct {
 	ID    string            `json:"id"`
 	Token string            `json:"token"`
@@ -21,6 +24,7 @@ type XUser struct {
 	Data  map[string]string `json:"data"`
 }
 
+// NewXUser creates a new XUser.
 func NewXUser(id, token, email string, data map[string]string) XUser {
 	if len(data) == 0 {
 		data = make(map[string]string)
@@ -31,27 +35,33 @@ func NewXUser(id, token, email string, data map[string]string) XUser {
 	}
 }
 
+// SetData sets a key-value pair in the user's data.
 func (x *XUser) SetData(key, value string) {
 	x.Data[key] = value
 }
 
+// GetData retrieves a value from the user's data by key.
 func (x *XUser) GetData(key string) string {
 	return x.Data[key]
 }
 
+// DeleteData removes a key from the user's data.
 func (x *XUser) DeleteData(key string) {
 	delete(x.Data, key)
 }
 
+// SessionConfig defines the configuration for the session middleware.
 type SessionConfig struct {
 	Skipper        middleware.Skipper
 	SessionManager *scs.SessionManager
 }
 
+// DefaultSessionConfig is the default configuration for the session middleware.
 var (
 	DefaultSessionConfig = SessionConfig{
 		Skipper: middleware.DefaultSkipper,
 	}
+	// SessionManager is the global session manager instance.
 	SessionManager *scs.SessionManager
 )
 
@@ -60,6 +70,7 @@ func init() {
 	SessionManager.Lifetime = 1 * time.Hour
 }
 
+// LoadAndSave is a middleware that loads and saves session data.
 func LoadAndSave(sessionManager *scs.SessionManager) echo.MiddlewareFunc {
 	c := DefaultSessionConfig
 	c.SessionManager = sessionManager
@@ -67,6 +78,7 @@ func LoadAndSave(sessionManager *scs.SessionManager) echo.MiddlewareFunc {
 	return LoadAndSaveWithConfig(c)
 }
 
+// LoadAndSaveWithConfig is a middleware that loads and saves session data with a custom configuration.
 func LoadAndSaveWithConfig(config SessionConfig) echo.MiddlewareFunc {
 
 	if config.Skipper == nil {
@@ -146,6 +158,8 @@ func addHeaderIfMissing(w http.ResponseWriter, key, value string) {
 	w.Header().Add(key, value)
 }
 
+// LoginRequired is a middleware that requires the user to be logged in.
+// If the user is not logged in, it redirects to the specified path.
 func LoginRequired(redirectPath string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c *echo.Context) error {
@@ -158,6 +172,8 @@ func LoginRequired(redirectPath string) echo.MiddlewareFunc {
 	}
 }
 
+// LoginRequiredFunc is a middleware that requires the user to be logged in.
+// If the user is not logged in, it executes the provided function.
 func LoginRequiredFunc(fn echo.HandlerFunc) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c *echo.Context) error {
@@ -170,6 +186,7 @@ func LoginRequiredFunc(fn echo.HandlerFunc) echo.MiddlewareFunc {
 	}
 }
 
+// Get retrieves a value from the session context.
 func Get[T any](c context.Context, name string) T {
 	var r T
 	if v, ok := SessionManager.Get(c, name).(T); ok {
@@ -178,19 +195,23 @@ func Get[T any](c context.Context, name string) T {
 	return r
 }
 
+// Set sets a value in the session context.
 func Set(c context.Context, name string, value any) {
 	SessionManager.Put(c, name, value)
 }
 
+// Delete removes a value from the session context.
 func Delete(c context.Context, name string) {
 	SessionManager.Remove(c, name)
 }
 
+// SetUser stores the user in the session.
 func SetUser(c context.Context, u XUser) {
 	b, _ := json.Marshal(u)
 	Set(c, SessionName, b)
 }
 
+// GetUser retrieves the user from the session.
 func GetUser(c context.Context) XUser {
 	b := Get[[]byte](c, SessionName)
 	var u XUser
@@ -198,10 +219,12 @@ func GetUser(c context.Context) XUser {
 	return u
 }
 
+// DeleteUser removes the user from the session.
 func DeleteUser(c context.Context) {
 	Delete(c, SessionName)
 }
 
+// IsAuthenticated checks if the user is authenticated (i.e., has an ID).
 func IsAuthenticated(c context.Context) bool {
 	return GetUser(c).ID != ""
 }
