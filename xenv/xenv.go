@@ -1,3 +1,4 @@
+// Package xenv provides functionality to load environment variables into struct fields.
 package xenv
 
 import (
@@ -14,11 +15,12 @@ type Options struct {
 	Prefix string
 }
 
+// Load populates a struct using environment variables.
 func Load(container any) error {
 	return LoadWithOptions(container, Options{})
 }
 
-// LoadOptions populates a struct using environment variables with an optional prefix.
+// LoadWithOptions populates a struct using environment variables with an optional prefix.
 func LoadWithOptions(container any, opts Options) error {
 	val := reflect.ValueOf(container)
 	if val.Kind() == reflect.Ptr {

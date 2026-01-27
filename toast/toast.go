@@ -1,3 +1,4 @@
+// Package toast provides helper functions for sending toast notifications in Echo applications.
 package toast
 
 import (
@@ -27,16 +28,21 @@ var (
 	ToastNull = Toast{}
 )
 
+// Toast represents a toast notification message.
 type Toast struct {
 	Kind    string `json:"type"`
 	Title   string `json:"title"`
 	Message string `json:"message"`
 }
 
+// ToastEvent wraps a Toast for HTMX events.
 type ToastEvent struct {
 	Event Toast `json:"toast"`
 }
 
+// Notify sends a toast notification.
+// If the request is an HTMX request, it sets the HX-Trigger header.
+// Otherwise, it sets a cookie.
 func Notify(c *echo.Context, kind string, title string, msg string) {
 	t := ToastEvent{
 		Event: Toast{
@@ -58,34 +64,42 @@ func Notify(c *echo.Context, kind string, title string, msg string) {
 	c.SetCookie(cookie)
 }
 
+// Success creates a success toast.
 func Success(msg string) Toast {
 	return Toast{KindSuccess, TitleSuccess, msg}
 }
 
+// Error creates an error toast.
 func Error(msg string) Toast {
 	return Toast{KindError, TitleError, msg}
 }
 
+// Warning creates a warning toast.
 func Warning(msg string) Toast {
 	return Toast{KindWarning, TitleWarning, msg}
 }
 
+// Info creates an info toast.
 func Info(msg string) Toast {
 	return Toast{KindInfo, TitleInfo, msg}
 }
 
+// NotifySuccess sends a success notification.
 func NotifySuccess(c *echo.Context, msg string) {
 	Notify(c, KindSuccess, TitleSuccess, msg)
 }
 
+// NotifyError sends an error notification.
 func NotifyError(c *echo.Context, msg string) {
 	Notify(c, KindError, TitleError, msg)
 }
 
+// NotifyWarning sends a warning notification.
 func NotifyWarning(c *echo.Context, msg string) {
 	Notify(c, KindWarning, TitleWarning, msg)
 }
 
+// NotifyInfo sends an info notification.
 func NotifyInfo(c *echo.Context, msg string) {
 	Notify(c, KindInfo, TitleInfo, msg)
 }
@@ -99,6 +113,7 @@ func marshallFrom[T any](t T) string {
 	return string(d)
 }
 
+// UnmarshallToast extracts a toast from the HTMX header if present.
 func UnmarshallToast(c *echo.Context) Toast {
 	var t ToastEvent
 	if value := c.Request().Header.Get(HeaderKey); value != "" {

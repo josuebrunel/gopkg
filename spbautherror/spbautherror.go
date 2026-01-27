@@ -1,3 +1,4 @@
+// Package spbautherror provides utilities for parsing Supabase authentication errors.
 package spbautherror
 
 import (
@@ -13,7 +14,7 @@ type Response struct {
 	Msg       string `json:"msg"`
 }
 
-// UnmarshalAuthError parses the specific error string format and extracts the Response.
+// Unmarshal parses the specific error string format and extracts the Response.
 func Unmarshal(errorString string) (*Response, error) {
 	// Find the start of the JSON part
 	jsonStart := strings.Index(errorString, "{")
