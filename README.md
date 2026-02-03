@@ -90,6 +90,15 @@ A wrapper around `log/slog` that provides structured logging with automatic sour
 ```go
 import "github.com/josuebrunel/gopkg/xlog"
 
+// Optional: Configure the logger (defaults to INFO, JSON, Source enabled)
+xlog.Setup(xlog.Config{
+    Level:         "DEBUG",         // "DEBUG", "INFO", "WARN", "ERROR"
+    Output:        os.Stdout,
+    Format:        xlog.FormatText, // xlog.FormatJSON or xlog.FormatText
+    DisableSource: false,           // Set to true to hide file/line info
+    SourceDepth:   7,               // Default depth for stack trace
+})
+
 xlog.Info("Something happened", "key", "value")
 ```
 
