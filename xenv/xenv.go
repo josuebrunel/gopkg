@@ -2,7 +2,9 @@
 package xenv
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"reflect"
 	"strconv"
@@ -73,6 +75,61 @@ func LoadWithOptions(container any, opts Options) error {
 		}
 	}
 	return nil
+}
+
+// LoadEnvFile loads environment variables from the given file path into the
+// process environment and then populates container using those variables.
+// Lines starting with '#' and blank lines are ignored.
+// Values may include an inline comment separated by " #".
+func LoadEnvFile(path string, container any) error {
+	return LoadEnvFileWithOptions(path, container, Options{})
+}
+
+// LoadEnvFileWithOptions is like LoadEnvFile but accepts Options (e.g. a prefix).
+func LoadEnvFileWithOptions(path string, container any, opts Options) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return fmt.Errorf("xenv: open env file: %w", err)
+	}
+	defer f.Close()
+
+	if err := parseEnvFile(f); err != nil {
+		return err
+	}
+	return LoadWithOptions(container, opts)
+}
+
+// parseEnvFile reads key=value pairs from r and sets them in the environment.
+func parseEnvFile(r io.Reader) error {
+	scanner := bufio.NewScanner(r)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		// skip blank lines and comments
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		key, value, found := strings.Cut(line, "=")
+		if !found {
+			continue
+		}
+		key = strings.TrimSpace(key)
+		value = strings.TrimSpace(value)
+		// strip inline comment (" #…") before quote removal
+		if idx := strings.Index(value, " #"); idx != -1 {
+			value = strings.TrimSpace(value[:idx])
+		}
+		// strip surrounding quotes
+		if len(value) >= 2 {
+			if (value[0] == '"' && value[len(value)-1] == '"') ||
+				(value[0] == '\'' && value[len(value)-1] == '\'') {
+				value = value[1 : len(value)-1]
+			}
+		}
+		if err := os.Setenv(key, value); err != nil {
+			return fmt.Errorf("xenv: setenv %s: %w", key, err)
+		}
+	}
+	return scanner.Err()
 }
 
 func setField(field reflect.Value, value string) error {

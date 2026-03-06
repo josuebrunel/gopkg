@@ -2,6 +2,7 @@ package xenv
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 )
@@ -119,5 +120,56 @@ func TestAdvancedFeatures(t *testing.T) {
 	// Test Nested with Prefix
 	if cfg.Metrics.Enabled != true {
 		t.Error("Nested default failed")
+	}
+}
+
+func TestLoadEnvFile(t *testing.T) {
+	defer os.Clearenv()
+
+	envContent := `
+# This is a comment
+
+KEY=file-secret
+DEBUG=true
+TIMEOUT=10s
+DB_HOST=db.example.com
+DB_PORT=3306
+DB_USER="fileuser"
+DB_PASSWORD='filepass' # inline comment
+TAGS=a,b,c
+`
+	tmp := filepath.Join(t.TempDir(), ".env")
+	if err := os.WriteFile(tmp, []byte(envContent), 0600); err != nil {
+		t.Fatalf("could not write temp env file: %v", err)
+	}
+
+	cfg := &AppConfig{}
+	if err := LoadEnvFile(tmp, cfg); err != nil {
+		t.Fatalf("LoadEnvFile failed: %v", err)
+	}
+
+	if cfg.APIKey != "file-secret" {
+		t.Errorf("expected 'file-secret', got %q", cfg.APIKey)
+	}
+	if !cfg.Debug {
+		t.Errorf("expected Debug=true, got %v", cfg.Debug)
+	}
+	if cfg.Timeout != 10*time.Second {
+		t.Errorf("expected 10s, got %v", cfg.Timeout)
+	}
+	if cfg.Database.Host != "db.example.com" {
+		t.Errorf("expected 'db.example.com', got %q", cfg.Database.Host)
+	}
+	if cfg.Database.Port != 3306 {
+		t.Errorf("expected 3306, got %d", cfg.Database.Port)
+	}
+	if cfg.Database.User != "fileuser" {
+		t.Errorf("expected 'fileuser' (unquoted), got %q", cfg.Database.User)
+	}
+	if cfg.Database.Password != "filepass" {
+		t.Errorf("expected 'filepass' (inline comment stripped), got %q", cfg.Database.Password)
+	}
+	if len(cfg.Tags) != 3 {
+		t.Errorf("expected 3 tags, got %d", len(cfg.Tags))
 	}
 }
