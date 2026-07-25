@@ -14,7 +14,7 @@ import (
 type (
 	xcontextkey string
 	// QS is a type alias for a query string map.
-	QS          = map[string]string
+	QS = map[string]string
 )
 
 var xc xcontextkey = "xcontext"
