@@ -32,7 +32,7 @@ func TestClient(t *testing.T) {
 	})
 	t.Run("TestAdminAuth", func(t *testing.T) {
 		resp, err := api.AdminAuth("testadmin@test.com", "testadmin1234")
-		user := ResponseTo[ResponseAdminAuth](resp)
+		user, _ := ResponseTo[ResponseAdminAuth](resp)
 		t.Logf("user: %v, error: %v", user, err)
 		assert(t, resp.StatusCode, 200)
 		assert(t, user.Admin.Email, "testadmin@test.com")
@@ -53,7 +53,7 @@ func TestClient(t *testing.T) {
 	var token string
 	t.Run("TestUserAuth", func(t *testing.T) {
 		resp, err := api.UserAuth("testuser@test.com", "testuser1234")
-		user := ResponseTo[ResponseAuth](resp)
+		user, _ := ResponseTo[ResponseAuth](resp)
 		t.Logf("user: %v, error: %v", user, err)
 		assert(t, resp.StatusCode, 200)
 		assert(t, user.Record.Email, "testuser@test.com")
@@ -63,14 +63,14 @@ func TestClient(t *testing.T) {
 		resp, err := api.RecordUpdate("users", userUUID, WithAuthorization(token), WithData(map[string]string{
 			"name": "testuser2",
 		}))
-		user := ResponseTo[UserRecord](resp)
+		user, _ := ResponseTo[UserRecord](resp)
 		t.Logf("user: %v, error: %v", user, err)
 		assert(t, resp.StatusCode, 200)
 		assert(t, user.Name, "testuser2")
 	})
 	t.Run("TestRecordGet", func(t *testing.T) {
 		resp, err := api.RecordGet("users", userUUID, WithAuthorization(token))
-		user := ResponseTo[UserRecord](resp)
+		user, _ := ResponseTo[UserRecord](resp)
 		t.Logf("user: %v, error: %v", user, err)
 		assert(t, resp.StatusCode, 200)
 		assert(t, user.ID, userUUID)
@@ -78,7 +78,7 @@ func TestClient(t *testing.T) {
 	})
 	t.Run("TestRecordList", func(t *testing.T) {
 		resp, err := api.RecordList("users", WithPage(1, 10, false), WithAuthorization(token))
-		users := ResponseTo[Records[UserRecord]](resp)
+		users, _ := ResponseTo[Records[UserRecord]](resp)
 		t.Logf("users: %v, error: %v", users, err)
 		assert(t, resp.StatusCode, 200)
 		assert(t, len(users.Items), 1)

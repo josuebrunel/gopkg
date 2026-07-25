@@ -99,10 +99,13 @@ func (c *Client) Request(method, url string, opts ...QueryOption) (*http.Respons
 	slog.Debug("calling", "url", req.URL.String())
 	resp, err := c.Client.Do(req)
 	if err != nil {
-		slog.Error("error while trying to fetch url", "url", url, "status-code", resp.StatusCode)
+		slog.Error("error while trying to fetch url", "url", url)
 		return resp, err
 	}
-	if resp.StatusCode != http.StatusOK {
+	if resp == nil {
+		return resp, errors.New("nil response from server")
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return resp, ErrInvalidStatusCode
 	}
 	return resp, nil
@@ -111,7 +114,10 @@ func (c *Client) Request(method, url string, opts ...QueryOption) (*http.Respons
 // Health checks the health of the PocketBase server.
 func (c *Client) Health() (HealthResponse, error) {
 	resp, err := c.Request(http.MethodGet, EndpointHealth)
-	return ResponseTo[HealthResponse](resp), err
+	if err != nil {
+		return HealthResponse{}, err
+	}
+	return ResponseTo[HealthResponse](resp)
 }
 
 // Auth performs authentication.
@@ -164,10 +170,10 @@ func (c *Client) RecordDelete(name string, id string, opts ...QueryOption) (*htt
 }
 
 // ResponseTo unmarshals the response body into a given type T.
-func ResponseTo[T any](resp *http.Response) T {
+func ResponseTo[T any](resp *http.Response) (T, error) {
 	var t T
 	if err := clink.ResponseToJson(resp, &t); err != nil {
-		slog.Error("failed to unmarshal response", "t", t)
+		return t, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
-	return t
+	return t, nil
 }
