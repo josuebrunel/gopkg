@@ -56,7 +56,11 @@ func TestUnmarshal(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := Unmarshal(tt.errorString)
 			assert.Eq(t, (err != nil), tt.wantErr)
-			assert.Eq(t, got, tt.want)
+			if tt.want == nil {
+				assert.Eq(t, got, tt.want)
+				return
+			}
+			assert.Eq(t, *got, *tt.want)
 		})
 	}
 }
