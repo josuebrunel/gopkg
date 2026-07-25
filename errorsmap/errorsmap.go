@@ -29,7 +29,10 @@ func (e EMap) Error() string {
 	for _, v := range e {
 		errs = append(errs, v)
 	}
-	return errors.Join(errs...).Error()
+	if joined := errors.Join(errs...); joined != nil {
+		return joined.Error()
+	}
+	return ""
 }
 
 func New() EMap {
