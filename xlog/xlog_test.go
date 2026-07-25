@@ -2,6 +2,7 @@ package xlog
 
 import (
 	"bytes"
+	"log/slog"
 	"strings"
 	"testing"
 )
@@ -74,6 +75,15 @@ func TestSetup(t *testing.T) {
 			shouldPrint: true,
 			msg:         "sourceless",
 		},
+		{
+			name:   "Color_Output",
+			config: Config{Level: "INFO", Output: &buf, Color: true},
+			logFunc: func(s string, a ...any) {
+				Info(s, a...)
+			},
+			shouldPrint: true,
+			msg:         "color_output_test",
+		},
 	}
 
 	for _, tt := range tests {
@@ -93,6 +103,12 @@ func TestSetup(t *testing.T) {
 						t.Errorf("Expected text format to contain level=INFO, got: %q", output)
 					}
 				}
+				if tt.config.Color {
+					want := ColorGreen + "INFO" + ColorReset
+					if !strings.Contains(output, want) {
+						t.Errorf("Expected color output to contain %q, got: %q", want, output)
+					}
+				}
 			} else {
 
 				if output != "" && strings.Contains(output, tt.msg) {
@@ -100,5 +116,23 @@ func TestSetup(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestColorHandlerWithAttrsAndGroup(t *testing.T) {
+	var buf bytes.Buffer
+	h := NewColorHandler(&buf, &slog.HandlerOptions{Level: slog.LevelInfo})
+	h = h.WithAttrs([]slog.Attr{slog.String("service", "gopkg")}).(*ColorHandler)
+	h = h.WithGroup("req").(*ColorHandler)
+
+	logger := slog.New(h)
+	logger.Info("hello", "id", 42)
+
+	output := buf.String()
+	if want := ColorGray + "service" + "=" + ColorReset + "gopkg"; !strings.Contains(output, want) {
+		t.Errorf("expected persistent attr from WithAttrs to survive WithGroup, got: %q", output)
+	}
+	if want := ColorGray + "req.id" + "=" + ColorReset + "42"; !strings.Contains(output, want) {
+		t.Errorf("expected record attr to be namespaced under group, got: %q", output)
 	}
 }

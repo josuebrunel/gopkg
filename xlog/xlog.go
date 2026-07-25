@@ -24,6 +24,7 @@ type Config struct {
 	Format        string    // Format is the output format: FormatJSON (default) or FormatText.
 	DisableSource bool      // DisableSource disables source file/line logging. Default is false (source enabled).
 	SourceDepth   int       // SourceDepth is the stack depth for SourceKey. Default is 7.
+	Color         bool      // Color enables color-coded, human-readable console output, overriding Format.
 }
 
 func init() {
@@ -74,18 +75,8 @@ func Setup(cfg Config) {
 		AddSource: !cfg.DisableSource,
 		Level:     level,
 		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
-			// Only customize source if it's enabled and we are ensuring consistent format?
-			// Actually, slog's default AddSource is decent, but the original code had custom source formatting.
-			// Let's keep the custom source formatting if source is enabled.
 			if !cfg.DisableSource && a.Key == slog.SourceKey {
-				pc, f, l, _ := runtime.Caller(cfg.SourceDepth) // Adjust depth based on usage
-				// Note: Caller depth might need adjustment if wrapped in xlog functions vs direct usage
-				// When called via xlog.Info, depth 7 might be correct relative to where slog calls it?
-				// Actually, runtime.Caller(7) in the original code is quite magic.
-				// slog's Default caller handling usually works if AddSource is true, but here we are customizing it.
-				// Let's stick to the original logic for source if possible, but be aware of depth.
-				// The original code used runtime.Caller(7). Let's keep it but verify via tests if possible.
-
+				pc, f, l, _ := runtime.Caller(cfg.SourceDepth)
 				a.Value = slog.GroupValue(
 					slog.Attr{
 						Key:   "file",
@@ -106,9 +97,12 @@ func Setup(cfg Config) {
 	}
 
 	var handler slog.Handler
-	if cfg.Format == FormatText {
+	switch {
+	case cfg.Color:
+		handler = NewColorHandler(cfg.Output, opts)
+	case cfg.Format == FormatText:
 		handler = slog.NewTextHandler(cfg.Output, opts)
-	} else {
+	default:
 		handler = slog.NewJSONHandler(cfg.Output, opts)
 	}
 

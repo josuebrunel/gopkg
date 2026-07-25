@@ -97,6 +97,7 @@ xlog.Setup(xlog.Config{
     Format:        xlog.FormatText, // xlog.FormatJSON or xlog.FormatText
     DisableSource: false,           // Set to true to hide file/line info
     SourceDepth:   7,               // Default depth for stack trace
+    Color:         true,            // Enable color output (forces text format)
 })
 
 xlog.Info("Something happened", "key", "value")
