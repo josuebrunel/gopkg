@@ -6,7 +6,7 @@ A collection of useful Go packages and mini-libraries for building web applicati
 
 ### assert
 
-A simple assertion library for testing.
+A minimal, dependency-free, non-fatal assertion library for testing.
 
 ```go
 import "github.com/josuebrunel/gopkg/assert"
@@ -15,6 +15,8 @@ func TestSomething(t *testing.T) {
     assert.Eq(t, 1, 1)
 }
 ```
+
+See [assert/README.md](assert/README.md) for the full API and more examples.
 
 ### component
 
